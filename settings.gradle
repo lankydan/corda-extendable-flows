@@ -1,0 +1,6 @@
+include 'cordapp'
+include 'cordapp-extended-cassandra'
+include 'cordapp-extended-http-request'
+include 'cordapp-contracts-states'
+include 'app'
+
