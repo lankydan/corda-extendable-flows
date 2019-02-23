@@ -1,6 +1,5 @@
-package com.lankydanblog.tutorial.cassandra.flows
+package com.lankydanblog.tutorial.http.flows
 
-import com.lankydanblog.tutorial.cassandra.services.MessageRepository
 import com.lankydanblog.tutorial.states.MessageState
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.identity.CordaX500Name
@@ -10,7 +9,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
-class CassandraSendMessageFlowTest {
+class HttpRequestSendMessageFlowTest {
 
   private lateinit var mockNetwork: MockNetwork
   private lateinit var partyA: StartedMockNode
@@ -24,7 +23,15 @@ class CassandraSendMessageFlowTest {
       MockNetworkParameters(
         notarySpecs = listOf(notaryNode),
         cordappsForAllNodes = listOf(
-          TestCordapp.findCordapp("com.lankydanblog.tutorial.cassandra"),
+          TestCordapp.findCordapp("com.lankydanblog.tutorial.http")
+            .withConfig(
+              mapOf(
+                "messages_request_path_base" to "localhost:8080",
+                "messages_request_path_new" to "new",
+                "messages_request_path_signed" to "signed",
+                "messages_request_path_committed" to "committed"
+              )
+            ),
           TestCordapp.findCordapp("com.lankydanblog.tutorial.base"),
           TestCordapp.findCordapp("com.lankydanblog.tutorial.states")
         )
@@ -62,7 +69,7 @@ class CassandraSendMessageFlowTest {
   @Test
   fun `Flow runs without errors`() {
     val future1 = partyA.startFlow(
-      CassandraSendMessageFlow(
+      HttpRequestSendMessageFlow(
         MessageState(
           contents = "hi",
           recipient = partyB.info.singleIdentity(),
@@ -73,10 +80,5 @@ class CassandraSendMessageFlowTest {
     )
     mockNetwork.runNetwork()
     println("done: ${future1.get()}")
-    println(
-      partyA.services.cordaService(MessageRepository::class.java).findAllByParty(
-        partyB.info.singleIdentity()
-      )
-    )
   }
 }

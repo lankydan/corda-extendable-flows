@@ -1,16 +1,18 @@
-package com.lankydanblog.tutorial.cassandra.flows
+package com.lankydanblog.tutorial.base.flows
 
-import com.lankydanblog.tutorial.cassandra.services.MessageRepository
 import com.lankydanblog.tutorial.states.MessageState
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.identity.CordaX500Name
 import net.corda.testing.core.singleIdentity
-import net.corda.testing.node.*
+import net.corda.testing.node.MockNetwork
+import net.corda.testing.node.MockNetworkNotarySpec
+import net.corda.testing.node.MockNodeParameters
+import net.corda.testing.node.StartedMockNode
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
-class CassandraSendMessageFlowTest {
+class SendMessageFlowTest {
 
   private lateinit var mockNetwork: MockNetwork
   private lateinit var partyA: StartedMockNode
@@ -21,14 +23,10 @@ class CassandraSendMessageFlowTest {
   fun setup() {
     notaryNode = MockNetworkNotarySpec(CordaX500Name("Notary", "London", "GB"))
     mockNetwork = MockNetwork(
-      MockNetworkParameters(
-        notarySpecs = listOf(notaryNode),
-        cordappsForAllNodes = listOf(
-          TestCordapp.findCordapp("com.lankydanblog.tutorial.cassandra"),
-          TestCordapp.findCordapp("com.lankydanblog.tutorial.base"),
-          TestCordapp.findCordapp("com.lankydanblog.tutorial.states")
-        )
-      )
+      listOf(
+        "com.lankydanblog"
+      ),
+      notarySpecs = listOf(notaryNode)
     )
     partyA =
       mockNetwork.createNode(
@@ -62,7 +60,7 @@ class CassandraSendMessageFlowTest {
   @Test
   fun `Flow runs without errors`() {
     val future1 = partyA.startFlow(
-      CassandraSendMessageFlow(
+      SendMessageFlow(
         MessageState(
           contents = "hi",
           recipient = partyB.info.singleIdentity(),
@@ -73,10 +71,5 @@ class CassandraSendMessageFlowTest {
     )
     mockNetwork.runNetwork()
     println("done: ${future1.get()}")
-    println(
-      partyA.services.cordaService(MessageRepository::class.java).findAllByParty(
-        partyB.info.singleIdentity()
-      )
-    )
   }
 }

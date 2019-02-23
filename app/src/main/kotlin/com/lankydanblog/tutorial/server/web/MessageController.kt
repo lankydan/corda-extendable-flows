@@ -1,13 +1,11 @@
 package com.lankydanblog.tutorial.server.web
 
-import com.lankydanblog.tutorial.base.flows.SendNewMessageFlow
 import com.lankydanblog.tutorial.server.NodeRPCConnection
 import com.lankydanblog.tutorial.server.dto.Message
 import com.lankydanblog.tutorial.states.MessageState
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.identity.CordaX500Name
 import net.corda.core.messaging.startFlow
-import net.corda.core.utilities.getOrThrow
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
