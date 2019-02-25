@@ -47,23 +47,11 @@ class CassandraSendMessageFlow(private val message: MessageState) :
 class CassandraSendMessageResponder(session: FlowSession) :
   SendMessageResponder(session) {
 
-  override fun preTransactionSigned(transaction: SignedTransaction) {
-    val message = transaction.coreTransaction.outputsOfType<MessageState>().single()
-    serviceHub.cordaService(MessageRepository::class.java).save(
-      message,
-      sender = false,
-      committed = false
-    )
-    logger.info("Received transaction with message: $message")
-  }
-
   override fun postTransactionSigned(transaction: SignedTransaction) {
     val message = transaction.coreTransaction.outputsOfType<MessageState>().single()
     logger.info("Signed transaction for message: $message")
   }
 
-  // i think its safe to give access to core transaction
-  // kotlins immutable by default and that most of the values are `val` so cant be changed
   override fun postTransactionCommitted(transaction: SignedTransaction) {
     val message = transaction.coreTransaction.outputsOfType<MessageState>().single()
     serviceHub.cordaService(MessageRepository::class.java).save(

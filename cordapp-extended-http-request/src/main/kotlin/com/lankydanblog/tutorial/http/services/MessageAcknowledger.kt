@@ -40,9 +40,9 @@ class MessageAcknowledger(serviceHub: AppServiceHub) :
       content = message.contents,
       committed = false
     )
-    val request = Request.Builder().url("https://$baseUrl/+$newMessageEndpoint").post(
+    val request = Request.Builder().url("http://$baseUrl/$newMessageEndpoint").post(
       RequestBody.create(
-        MediaType.get("application/json"),
+        MediaType.parse("application/json; charset=utf-8"),
         mapper.writeValueAsString(dto)
       )
     ).build()
@@ -60,9 +60,9 @@ class MessageAcknowledger(serviceHub: AppServiceHub) :
       content = message.contents,
       committed = false
     )
-    val request = Request.Builder().url("https://$baseUrl/+$signedMessageEndpoint").post(
+    val request = Request.Builder().url("http://$baseUrl/$signedMessageEndpoint").post(
       RequestBody.create(
-        MediaType.get("application/json"),
+        MediaType.parse("application/json"),
         mapper.writeValueAsString(dto)
       )
     ).build()
@@ -81,9 +81,9 @@ class MessageAcknowledger(serviceHub: AppServiceHub) :
       committed = true
     )
     val request =
-      Request.Builder().url("https://$baseUrl/+$committedMessageEndpoint").post(
+      Request.Builder().url("http://$baseUrl/$committedMessageEndpoint").post(
         RequestBody.create(
-          MediaType.get("application/json"),
+          MediaType.parse("application/json"),
           mapper.writeValueAsString(dto)
         )
       ).build()

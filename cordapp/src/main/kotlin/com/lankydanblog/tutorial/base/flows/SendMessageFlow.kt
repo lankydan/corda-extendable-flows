@@ -70,10 +70,6 @@ open class SendMessageFlow(private val message: MessageState) :
 @InitiatedBy(SendMessageFlow::class)
 open class SendMessageResponder(private val session: FlowSession) : FlowLogic<Unit>() {
 
-  open fun preTransactionSigned(transaction: SignedTransaction) {
-    // to be implemented by sub type flows - otherwise do nothing
-  }
-
   open fun postTransactionSigned(transaction: SignedTransaction) {
     // to be implemented by sub type flows - otherwise do nothing
   }
@@ -85,13 +81,15 @@ open class SendMessageResponder(private val session: FlowSession) : FlowLogic<Un
   @Suspendable
   final override fun call() {
     val stx = subFlow(object : SignTransactionFlow(session) {
-      override fun checkTransaction(stx: SignedTransaction) {
-        preTransactionSigned(stx)
-      }
+      override fun checkTransaction(stx: SignedTransaction) {}
     })
     postTransactionSigned(stx)
-    val committed = subFlow(ReceiveFinalityFlow(session, expectedTxId = stx.id))
-//    val committed = waitForLedgerCommit(stx.id)
+    val committed = subFlow(
+      ReceiveFinalityFlow(
+        otherSideSession = session,
+        expectedTxId = stx.id
+      )
+    )
     postTransactionCommitted(committed)
   }
 }

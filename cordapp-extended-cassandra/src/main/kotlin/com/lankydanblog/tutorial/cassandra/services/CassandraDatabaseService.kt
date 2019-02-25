@@ -19,7 +19,7 @@ import java.nio.charset.Charset
 import java.util.*
 
 @CordaService
-class CassandraDatabaseService(serviceHub: AppServiceHub) :
+class CassandraDatabaseService(private val serviceHub: AppServiceHub) :
   SingletonSerializeAsToken() {
 
   lateinit var session: Session
@@ -32,22 +32,28 @@ class CassandraDatabaseService(serviceHub: AppServiceHub) :
   }
 
   private fun connect() {
-    val cluster = cluster()
-    session = session(cluster)
+    val config = serviceHub.getAppContext().config
+    val cluster = cluster(
+      host = config.getString("cassandra_host"),
+      port = config.getInt("cassandra_port"),
+      cluster = config.getString("cassandra_cluster")
+    )
+    session =
+      session(cluster = cluster, keyspace = config.getString("cassandra_keyspace"))
     mappingManager = mappingManager(session)
   }
 
-  private fun cluster(): Cluster {
+  private fun cluster(host: String, port: Int, cluster: String): Cluster {
     return Cluster.builder()
-      .addContactPoint("127.0.0.1")
-      .withPort(9042)
-      .withClusterName("cluster")
+      .addContactPoint(host)
+      .withPort(port)
+      .withClusterName(cluster)
       .build()
   }
 
-  private fun session(cluster: Cluster): Session {
+  private fun session(cluster: Cluster, keyspace: String): Session {
     val session = cluster.connect()
-    setupKeyspace(session, "corda_testing")
+    setupKeyspace(session, keyspace)
     return session
   }
 

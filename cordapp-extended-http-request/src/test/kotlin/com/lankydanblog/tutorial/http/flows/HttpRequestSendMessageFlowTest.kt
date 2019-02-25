@@ -26,7 +26,7 @@ class HttpRequestSendMessageFlowTest {
           TestCordapp.findCordapp("com.lankydanblog.tutorial.http")
             .withConfig(
               mapOf(
-                "messages_request_path_base" to "localhost:8080",
+                "messages_request_path_base" to "localhost:8080/messages",
                 "messages_request_path_new" to "new",
                 "messages_request_path_signed" to "signed",
                 "messages_request_path_committed" to "committed"

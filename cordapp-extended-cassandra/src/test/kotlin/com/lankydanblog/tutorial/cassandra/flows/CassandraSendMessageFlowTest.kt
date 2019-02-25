@@ -24,7 +24,15 @@ class CassandraSendMessageFlowTest {
       MockNetworkParameters(
         notarySpecs = listOf(notaryNode),
         cordappsForAllNodes = listOf(
-          TestCordapp.findCordapp("com.lankydanblog.tutorial.cassandra"),
+          TestCordapp.findCordapp("com.lankydanblog.tutorial.cassandra")
+            .withConfig(
+              mapOf(
+                "cassandra_host" to "localhost",
+                "cassandra_port" to 9042,
+                "cassandra_cluster" to "cluster_name",
+                "cassandra_keyspace" to "corda_testing"
+              )
+            ),
           TestCordapp.findCordapp("com.lankydanblog.tutorial.base"),
           TestCordapp.findCordapp("com.lankydanblog.tutorial.states")
         )

@@ -11,19 +11,17 @@ import net.corda.core.node.services.Vault
 import org.springframework.boot.jackson.JsonComponentModule
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.http.MediaType
-import org.springframework.http.codec.json.Jackson2JsonDecoder
 
 @Configuration
 class JacksonConfiguration {
 
   @Bean
-  fun jsonComponentModule() = JsonComponentModule()
-
-  @Bean
-  fun rpcObjectMapper(rpc: NodeRPCConnection): ObjectMapper {
+  fun rpcObjectMapper(
+    rpc: NodeRPCConnection,
+    jsonComponentModule: JsonComponentModule
+  ): ObjectMapper {
     val mapper = JacksonSupport.createDefaultMapper(rpc.proxy/*, fullParties = true*/)
-    mapper.registerModule(jsonComponentModule())
+    mapper.registerModule(jsonComponentModule)
     mapper.registerModule(MixinModule())
     return mapper
   }
@@ -43,7 +41,4 @@ class JacksonConfiguration {
   @JsonDeserialize(using = JacksonSupport.SecureHashDeserializer::class)
   abstract class SecureHashMixin
 
-  @Bean
-  fun decoder(rpcObjectMapper: ObjectMapper): Jackson2JsonDecoder =
-      Jackson2JsonDecoder(rpcObjectMapper, MediaType.APPLICATION_JSON, MediaType.APPLICATION_STREAM_JSON)
 }

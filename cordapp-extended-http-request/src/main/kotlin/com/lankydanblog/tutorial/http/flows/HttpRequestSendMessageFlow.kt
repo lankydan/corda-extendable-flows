@@ -34,14 +34,8 @@ class HttpRequestSendMessageFlow(private val message: MessageState) :
 }
 
 @InitiatedBy(SendMessageFlow::class)
-class CassandraSendMessageResponder(session: FlowSession) :
+class HttpRequestSendMessageResponder(session: FlowSession) :
   SendMessageResponder(session) {
-
-  override fun preTransactionSigned(transaction: SignedTransaction) {
-    val message = transaction.coreTransaction.outputsOfType<MessageState>().single()
-    serviceHub.cordaService(MessageAcknowledger::class.java)
-      .newMessageReceived(message, true)
-  }
 
   override fun postTransactionSigned(transaction: SignedTransaction) {
     val message = transaction.coreTransaction.outputsOfType<MessageState>().single()
