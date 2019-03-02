@@ -12,7 +12,6 @@ import net.corda.core.transactions.TransactionBuilder
 
 @InitiatingFlow
 @StartableByRPC
-@StartableByService
 open class SendMessageFlow(private val message: MessageState) :
   FlowLogic<SignedTransaction>() {
 

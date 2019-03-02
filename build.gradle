@@ -102,10 +102,8 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['jar']) {
         cassandra_keyspace=corda_testing
       '''
     }
-    flowOverride("com.lankydanblog.tutorial.base.SendMessageFlow",
-      "com.lankydanblog.tutorial.cassandra.flows.CassandraSendMessageFlow")
-    flowOverride("com.lankydanblog.tutorial.base.SendMessageResponder",
-      "com.lankydanblog.tutorial.cassandra.flows.CassandraSendMessageResponder")
+     flowOverride("com.lankydanblog.tutorial.base.flows.SendMessageFlow",
+       "com.lankydanblog.tutorial.cassandra.flows.OverridingResponder")
 
   }
   node {
@@ -126,10 +124,6 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['jar']) {
         messages_request_path_committed="/committed"
       '''
     }
-    flowOverride("com.lankydanblog.tutorial.base.SendMessageFlow",
-      "com.lankydanblog.tutorial.http.flows.HttpRequestSendMessageFlow")
-    flowOverride("com.lankydanblog.tutorial.base.SendMessageResponder",
-      "com.lankydanblog.tutorial.http.flows.HttpRequestSendMessageResponder")
   }
 }
 

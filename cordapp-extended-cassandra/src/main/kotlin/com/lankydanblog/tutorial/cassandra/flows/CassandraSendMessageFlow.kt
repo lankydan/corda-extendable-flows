@@ -1,17 +1,14 @@
 package com.lankydanblog.tutorial.cassandra.flows
 
-import com.lankydanblog.tutorial.cassandra.services.MessageRepository
+import co.paralleluniverse.fibers.Suspendable
 import com.lankydanblog.tutorial.base.flows.SendMessageFlow
 import com.lankydanblog.tutorial.base.flows.SendMessageResponder
+import com.lankydanblog.tutorial.cassandra.services.MessageRepository
 import com.lankydanblog.tutorial.states.MessageState
-import net.corda.core.flows.FlowSession
-import net.corda.core.flows.InitiatedBy
-import net.corda.core.flows.StartableByRPC
-import net.corda.core.flows.StartableByService
+import net.corda.core.flows.*
 import net.corda.core.transactions.SignedTransaction
 
 @StartableByRPC
-@StartableByService
 class CassandraSendMessageFlow(private val message: MessageState) :
   SendMessageFlow(message) {
 
@@ -60,5 +57,24 @@ class CassandraSendMessageResponder(session: FlowSession) :
       committed = true
     )
     logger.info("Committed transaction for message: $message")
+  }
+}
+
+@InitiatedBy(SendMessageFlow::class)
+class OverridingResponder(private val session: FlowSession) :
+  FlowLogic<Unit>() {
+
+  @Suspendable
+  override fun call() {
+    val stx = subFlow(object : SignTransactionFlow(session) {
+      override fun checkTransaction(stx: SignedTransaction) {}
+    })
+    logger.info("Screw the original responder. I'll build my own responder... with blackjack and hookers!")
+    subFlow(
+      ReceiveFinalityFlow(
+        otherSideSession = session,
+        expectedTxId = stx.id
+      )
+    )
   }
 }

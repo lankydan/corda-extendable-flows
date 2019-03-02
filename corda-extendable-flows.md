@@ -16,7 +16,7 @@ Before we go any further, here is a link to the [official documentation on exten
 
 ### Writing a base Flow to allow extension
 
-Writing a CorDapp in a way that allows it to be easily extended will likely require a reasonable amount of thought. It largely depends on what you are trying to achieve. Providing a way for developers to extend your CorDapp so that they can send data to external systems or add their own logging should pose no problems. On the other hand, allowing the contents of a transaction to be altered or who it is sent to will require more thought to ensure that your CorDapp is not misused. This is a subject I hope to explore a bit further in future posts.
+Writing a CorDapp in a way that allows it to be easily extended will likely require a reasonable amount of thought. It largely depends on what a CorDapp maintainer is trying to achieve. Providing a way for developers to extend a CorDapp so that they can send data to external systems or add their own logging should pose no problems. On the other hand, allowing the contents of a transaction to be altered or who it is sent to will require more thought to ensure that a CorDapp is not misused. This is a subject I hope to explore a bit further in future posts.
 
 For the purpose of this post, we will look at the simpler option. Let's jump right in since there has a been a whole lot of text so far and no code. Below is the `SendMessageFlow` that will act as the "base" Flow that will be extended in a later section:
 ```kotlin
@@ -67,7 +67,7 @@ I have removed a few of the functions to so we can focus on what is important.
 
 The first and sometimes important step to allow this class to be extended, is the fact it is `open`. This is more of a Kotlin thing rather than Java, since all classes in Kotlin are `final` by default. If you are writing this in Java then just ignore the last few sentences!
 
-Following on from that there are a series of functions that are available to be overridden. Each function has been placed in an appropriate place inside the main execution of the Flow. They will then be called when the Flow runs. For now they have been given an empty implementation since they provide no use to the CorDapp developer.
+Following on from that, there are a series of functions that are available to be overridden. Each function has been placed in an appropriate place inside the main execution of the Flow. They will then be called when the Flow runs. For now, they have been given empty implementations since they provide no use to the CorDapp developer.
 
 I regards to the `open` functions. You can name them or place them wherever you want. These are functions that I thought could be useful for developers wanting to add extra traceability over what the base app provides. 
 
@@ -75,7 +75,7 @@ Digging down into a bit more detail. The `call` function has been made `final` (
 
 Later on we will look at how this Flow can be subclassed.
 
-Below is the `SendMessageResponder` that interacts with the `SendMessageFlow`. It follows the same concepts as above and therefore I will only show it as reference for later:
+Below is the `SendMessageResponder` that interacts with the `SendMessageFlow`. It follows the same concepts as above and therefore I will only show it as a reference for later:
 ```kotlin
 @InitiatedBy(SendMessageFlow::class)
 open class SendMessageResponder(private val session: FlowSession) : FlowLogic<Unit>() {
@@ -109,10 +109,10 @@ open class SendMessageResponder(private val session: FlowSession) : FlowLogic<Un
 
 In this section we get to see how the developer can make use of the work done on the previous Flow. It already has all the needed functionality. The only thing that is missing is the small amount of extra traceability that the developer wants to add in. Thanks to the functions added to the base Flow. This should cause no problems.
 
-Let's start with extending an `@InitiatingFlow` Flow. The requirements for doing so are as follows:
+Let's start with extending an Initiating Flow. The requirements for doing so are as follows:
 - Extend the base `@InitiatingFlow`
 - Do __not__ add `@InitiatingFlow` to the new Flow (errors will occur if you do)
-- Call the base Flow's constructor (`super` in Java)
+- Reference the base Flow's constructor (`super` in Java)
 - Override any desired functions
 - Call the new Flow instead of the base Flow
 
@@ -161,7 +161,7 @@ Have all the requirements listed above been met?
 - In this scenario, all the functions have overridden
 - We haven't got this far
 
-Ok, so that is 4/5 so far. That's a pretty good start. To cross off the last item on the list we need to see how it's called. Below are snippets that calling the base `SendMessageFlow` and the `CassandraSendMessageFlow` extending Flow.
+Ok, so that is 4/5 so far. That's a pretty good start. To cross off the last item on the list we need to see how it's called. Below are snippets that call the base `SendMessageFlow` and the `CassandraSendMessageFlow` extending Flow.
 
 Starting with `SendMessageFlow`:
 ```kotlin
@@ -171,7 +171,7 @@ Followed by `CassandraSendMessageFlow`:
 ```kotlin
 proxy.startFlow(::CassandraSendMessageFlow, messageState)
 ```
-Notice the difference? In this scenario, it only the name of the Flow has changed. Nothing else.
+Notice the difference? In this scenario, only the name of the Flow has changed. Nothing else.
 
 Both snippets are completely valid. Calling the original `SendMessageFlow` is still allowed. Remember from our perspective, it is just normal Object Oriented code. It won't have the fancy extra code added to the extending Flow but it will still execute without issues. Completing this step meets the last requirement for extending an `@InitiatingFlow`.
 
@@ -185,10 +185,10 @@ I will put this into all of the following sections since failing to follow this 
 Extending a Responder Flow works in a very similar way to extending an `@InitiatingFlow` Flow. The only difference being how it is called. As stated in the [documentation](https://docs.corda.net/head/flow-overriding.html#subclassing-a-flow):
 > Corda would detect that both `BaseResponder` and `SubResponder` are configured for responding to Initiator. Corda will then calculate the hops to `FlowLogic` and select the implementation which is furthest distance, ie: the most subclassed implementation.
 
-The statement, "most subclassed" is the important takeaway from this text. Therefore from a developer's viewpoint, all they need to do is extend the external base Responder Flow and thats it. I quite liked the requirements list, so let's go through another one for extending Responder Flows:
+The statement, "most subclassed" is the important takeaway from this text. Therefore from a developer's viewpoint, all they need to do is extend the external base Responder Flow and thats it. I quite liked previous the requirements list, so let's go through another one for extending Responder Flows:
 - Extend the base `@InitiatedBy` / Responder Flow
 - Add `@InitiatedBy` to the new Flow
-- Call the base Flow's constructor (`super` in Java)
+- Reference the base Flow's constructor (`super` in Java)
 - Override any desired functions
 
 If you are vigilant, you might have noticed that there is no mention of how to call it. The extending Responder Flow does not need to be called or referenced anywhere else. Corda will do the work to route everything to the right location.
@@ -215,8 +215,7 @@ class CassandraSendMessageResponder(session: FlowSession) :
   }
 }
 ```
-
-Furthermore, we look back at the statement "most subclassed" again. The `CassandraSendMessageResponder` is a subclass of `SendMessageResponder` and is therefore chosen by Corda to handle requests from the Initiating Flow. But, this could be taken a step further. If there was another class, say `SuperSpecialCassandraSendMessageResponder`, this Flow is now what Corda will start using. Although I do find this sort of scenario somewhat unlikely at the moment, it is definitely worth knowing about.
+Furthermore, lets look back at the statement "most subclassed" again. The `CassandraSendMessageResponder` is a subclass of `SendMessageResponder` and is therefore chosen by Corda to handle requests from the Initiating Flow. But, this could be taken a step further. If there was another class, say `SuperSpecialCassandraSendMessageResponder`, this Flow is now what Corda will start using. Although I do find this sort of scenario somewhat unlikely at the moment, it is definitely worth knowing about.
 
 Copying and pasting this statement again so you don't forget:
 > You must ensure the sequence of sends/receives/subFlows in a subclass are compatible with the parent.
@@ -230,7 +229,7 @@ I think the [Corda documentation's](https://docs.corda.net/head/flow-overriding.
 
 Hopefully, this extract along with my earlier description will clarify the difference between extending and overriding Responder Flows.
 
-So what might an overriding Flow look like? Well anything you want really, within reason. Maybe it might look like the below, although I doubt it:
+So, what might an overriding Flow look like? Well anything you want really, within reason. Maybe it might look like the below, although I doubt it:
 ```kotlin
 @InitiatedBy(SendMessageFlow::class)
 class OverridingResponder(private val session: FlowSession) :
@@ -251,10 +250,12 @@ class OverridingResponder(private val session: FlowSession) :
   }
 }
 ```
-Since this Flow is completely replacing the original base Flow, it will look just like a normal Responder Flow. Since, well, it is one. That means it has `InitiatedBy` referencing the Initiating Flow, extends `FlowLogic` and implements the `call` function.
+Since this Flow is completely replacing the original base Flow, it will look just like a normal Responder Flow. Since, well, it is one. That means it has `@InitiatedBy` referencing the Initiating Flow, extends `FlowLogic` and implements the `call` function.
 
 Just putting this here one last time:
 > You must ensure the sequence of sends/receives/subFlows in a subclass are compatible with the parent.
+
+This is even more prevalent here than in the previous sections. Since the whole `call` function is being overridden you must make sure that every `send` and `receive` is in the right place so interactions with the Initiating Flow run without errors.
 
 Configuration wise there is a bit more to do than with extending a Flow. In this situation we are trying to completely replace a Responder with another. To do so, we need a way to tell the node to redirect interactions from an Initiating Flow to a new overriding Responder Flow. Corda provides a way to do just that. 
 
@@ -273,7 +274,7 @@ Obviously, change the classes referenced to your own...
 
 So what is going on here? The config says that the `SendMessageFlow` which normally interacts with `SendMessageResponder` will now route to `OverridingResponder` instead.
 
-To make everything a bit easier as well, the Cordform plugin provides the `flowOverride` method as part of `deployNodes`. This will then generate the configuration block above for you. The block shown above was generated using the code below:
+To make everything a bit easier as well, the `Cordform` plugin provides the `flowOverride` method as part of `deployNodes`. This will then generate the configuration block above for you. For the example above, the following code was used:
 ```groovy
 node {
   name "O=PartyA,L=London,C=GB"
@@ -297,12 +298,12 @@ Now, after `deployNodes` has run and you have started your node, any requests co
 
 One of the handy features that Corda 4 provides is the ability to customise Flows from third-party CorDapps (or your own). This is done by two methods, extending or overriding. 
 
-Extending would be the first choice between the two but it does require a bit more effort on the side of the CorDapp developer. They must provide enough avenues for customisation without relinquishing control of the original functionality of their Flows. Not providing enough customisation might not deter other developers from using their CorDapp, but it could seem less attractive to others as they will feel less in control of their application. Actually extending a Flow does not require much work making it easier for developers to adopt and adapt external Flows.
+Extending would be my first choice between the two but it does require a bit more effort on the side of the CorDapp developer. They must provide enough avenues for customisation without relinquishing control of the original functionality of their Flows. Providing to little customisation might not deter other developers from using their CorDapp. But, developers could become unhappy with the lack of control of their own application. It is a slippery slope to control original intent with routes for customisation. On the other hand, actually extending a Flow does not require much work, making it easier for developers to adopt and adapt external Flows.
 
 Overriding on the other hand requires no work for a CorDapp developer and instead everything is put onto the developer leveraging external Responder Flows. That is because the the existing Flow is pretty much being thrown away and the only reference back to the original implementation is the link to the Initiating Flow.
 
-By embracing both the extending and overriding of Flows CorDapp developers will be able to leverage external CorDapps while still providing enough customisation to fulfil all business requirements they might have. As time progresses, developers will drive the adoption of reusing existing CorDapps as they provide access to additional customisation, soon taking the same position as Open Source libraries that we all already leverage in any work we do.
+By embracing both the extending and overriding of Flows, CorDapp developers will be able to leverage external CorDapps while still providing enough customisation to fulfil all business requirements they might have. As time progresses, developers will drive the adoption of reusing existing CorDapps as they provide access to additional customisation, soon taking the same position as Open Source libraries that we all already leverage in any work we do.
 
-The code used in this post can be found on my [GitHub](https://github.com/lankydan/corda-extendable-flows). It contains the code for `CassandraSendMessageFlow` which sets up a connection to an external Cassandra database to save tracing style data. It also contains another module that sends HTTP requests as part of its extension of the base Flows. If you are still curious after reading this post, this repository might help satisfy you.
+The code used in this post can be found on my [GitHub](https://github.com/lankydan/corda-extendable-flows). It contains the code for `CassandraSendMessageFlow` which sets up a connection to an external Cassandra database to save tracing style data. It also contains another module that sends HTTP requests as part of its extension of the base Flows. If you are still curious after reading this post, this repository might help.
 
 If you enjoyed this post or found it helpful (or both) then please feel free to follow me on Twitter at [@LankyDanDev](https://twitter.com/LankyDanDev) and remember to share with anyone else who might find this useful!
