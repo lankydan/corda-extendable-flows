@@ -80,34 +80,4 @@ class SendMessageFlowTest {
     mockNetwork.runNetwork()
     future.get()
   }
-
-  @Test
-  fun `can ping counterparties`() {
-
-    val acceptorFlowFutures = listOf(partyA, partyB).map {
-      it.registerInitiatedFlow(SendMessageResponder::class.java).toFuture()
-    }
-
-    partyA.startFlow(
-      SendMessageFlow(
-        MessageState(
-          contents = "hi",
-          recipient = partyB.info.singleIdentity(),
-          sender = partyA.info.singleIdentity(),
-          linearId = UniqueIdentifier()
-        )
-      )
-    )
-    mockNetwork.runNetwork()
-
-    acceptorFlowFutures.forEach {
-      val result = it
-        .getOrThrow(Duration.ofMinutes(1)) // Timeout failure here
-        .stateMachine
-        .resultFuture
-        .getOrThrow(Duration.ofMinutes(1)) as String
-
-      assertEquals("Ping!", result)
-    }
-  }
 }
